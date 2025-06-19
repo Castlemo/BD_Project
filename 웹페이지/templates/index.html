@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sentiment 투자 도우미</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/export-data.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
   <style>
     /* Reset & 기본 설정 */
     * {
@@ -12,199 +15,746 @@
       margin: 0;
       padding: 0;
     }
+
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       line-height: 1.6;
-      background-color: #f5f7fa;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #333;
-      display: flex;
-      justify-content: center;
-      padding: 2rem;
+      min-height: 100vh;
     }
-    .container {
+
+    .main-container {
+      position: relative;
       width: 100%;
-      max-width: 700px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
-    header {
-      background-color: #4caf50;
-      padding: 1.5rem;
-      color: #fff;
-      text-align: center;
+
+    .page-title {
+      position: absolute;
+      top: 20px;
+      left: 50px;
+      font-size: 48px;
+      font-weight: bold;
+      color: #FFFFFF;
+      z-index: 1000;
     }
-    header h1 {
-      font-size: 1.75rem;
+
+    .advice-message {
+      position: absolute;
+      top: 40px;
+      left: 550px;
+      width: 300px;
+      padding: 10px 15px;
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
+      border-radius: 25px;
+      font-size: 16px;
       font-weight: 600;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      animation: slideInFromTop 0.5s ease-out;
     }
 
-    main {
-      padding: 1.5rem;
+    @keyframes slideInFromTop {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    form {
+    .search-container {
+      position: absolute;
+      top: 30px;
+      right: 50px;
+      z-index: 1000;
+    }
+
+    .search-form {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
+      gap: 10px;
+      align-items: center;
     }
-    form input[type="text"] {
-      flex: 1;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    form button {
-      padding: 0.75rem 1.25rem;
-      background-color: #4caf50;
-      color: #fff;
+
+    .search-input {
+      padding: 12px 20px;
       border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      border-radius: 25px;
+      font-size: 16px;
+      width: 300px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
-    form button:hover {
-      background-color: #43a047;
+
+    .search-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .search-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    .content-wrapper {
+      display: flex;
+      height: calc(100% - 100px);
+      margin-top: 100px;
+      padding: 20px;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .left-container {
+      width: 60%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+         .chart-box {
+       width: 100%;
+       height: 60%;
+       position: relative;
+       padding: 20px;
+       background: rgba(255, 255, 255, 0.95);
+       backdrop-filter: blur(20px);
+       border-radius: 20px;
+       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+       border: 1px solid rgba(255, 255, 255, 0.2);
+     }
+
+         .article-list-box {
+       width: 100%;
+       height: 38%;
+       position: relative;
+       padding: 20px;
+       background: rgba(255, 255, 255, 0.95);
+       backdrop-filter: blur(20px);
+       border-radius: 20px;
+       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+       border: 1px solid rgba(255, 255, 255, 0.2);
+       overflow-y: auto;
+     }
+
+    .article-list-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .article-list-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    .article-list-box::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+
+    .box-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+         .chart-container {
+       width: 100%;
+       height: calc(100% - 60px);
+       position: relative;
+       margin-left: -100px;
+     }
+
+         .chart-legend {
+       position: absolute;
+       top: 120px;
+       right: 30px;
+       display: flex;
+       flex-direction: column;
+       gap: 15px;
+       z-index: 1000;
+     }
+
+    .legend-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: opacity 0.3s ease;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 90px;
+      height: 35px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .legend-item.positive {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+    }
+
+    .legend-item.negative {
+      background: linear-gradient(135deg, #F44336, #d32f2f);
+    }
+
+    .legend-item.neutral {
+      background: linear-gradient(135deg, #FF9800, #f57c00);
+    }
+
+    .legend-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .legend-count {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      min-width: 60px;
+    }
+
+    .article-item {
+      padding: 15px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .article-item:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateX(5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .article-item.positive {
+      border-left-color: #4CAF50;
+    }
+
+    .article-item.negative {
+      border-left-color: #F44336;
+    }
+
+    .article-item.neutral {
+      border-left-color: #FF9800;
+    }
+
+    .article-item.selected {
+      background: rgba(102, 126, 234, 0.1);
+      border-left-color: #667eea;
+    }
+
+    .article-headline {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    .article-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .sentiment-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .sentiment-badge.positive {
+      background: #4CAF50;
+    }
+
+    .sentiment-badge.negative {
+      background: #F44336;
+    }
+
+    .sentiment-badge.neutral {
+      background: #FF9800;
+    }
+
+    .right-container {
+      width: 40%;
+      height: 100%;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .recommendation-box {
+      width: 100%;
+      height: 100%;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      overflow-y: auto;
+    }
+
+    .recommendation-content {
+      line-height: 1.8;
+      color: #333;
+    }
+
+    .recommendation-section {
+      margin-bottom: 25px;
+    }
+
+    .recommendation-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .recommendation-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #555;
+      background: rgba(102, 126, 234, 0.05);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
     }
 
     .message {
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      border-radius: 15px;
+      font-weight: 600;
+      font-size: 18px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
     }
+
     .message.success {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
     }
+
     .message.error {
-      background-color: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
+      background: rgba(244, 67, 54, 0.9);
+      color: white;
     }
 
-    #chart-container {
-      margin: 1.5rem 0;
+    .loading {
       text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #666;
     }
 
-    .news-section {
-      margin-top: 2rem;
-    }
-    .news-section h2 {
-      margin-bottom: 0.75rem;
-      font-size: 1.25rem;
-      color: #444;
-    }
-    .news-list {
-      list-style: none;
-    }
-    .news-list li {
-      margin-bottom: 0.75rem;
-      padding: 0.75rem;
-      background-color: #fafafa;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .news-list li:hover {
-      background-color: #f0f0f0;
-    }
-    .news-list a {
-      text-decoration: none;
-      color: #1e88e5;
-      font-weight: 500;
-    }
-    .news-list a:hover {
-      text-decoration: underline;
-    }
-
-    footer {
+    .empty-state {
       text-align: center;
-      padding: 1rem;
-      font-size: 0.875rem;
-      color: #777;
+      padding: 60px 20px;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.5;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Sentiment 기반 투자 도우미</h1>
-    </header>
+  <div class="main-container">
+    <div class="page-title">
+      <p>Sentiment Analysis</p>
+    </div>
 
-    <main>
-      <form method="get" action="/">
+    {% if advice and not ('못 찾을 수 없습니다' in advice or '뉴스가 없습니다' in advice) %}
+      <div class="advice-message">
+        {{ advice }}
+      </div>
+    {% endif %}
+
+    <div class="search-container">
+      <form class="search-form" method="get" action="/">
         <input
           type="text"
           name="company"
+          class="search-input"
           placeholder="회사명 입력 (예: Apple)"
           required
           value="{{ request.args.get('company','') }}"
         >
-        <button type="submit">조회</button>
+        <button type="submit" class="search-btn">분석</button>
       </form>
+    </div>
 
-      {% if advice %}
-        <div class="message {% if '못 찾을 수 없습니다' in advice or '뉴스가 없습니다' in advice %}error{% else %}success{% endif %}">
-          {{ advice }}
+         {% if advice and ('못 찾을 수 없습니다' in advice or '뉴스가 없습니다' in advice) %}
+       <div class="message error">
+         {{ advice }}
+       </div>
+     {% endif %}
+
+    <div class="content-wrapper">
+      <div class="left-container">
+        <!-- 차트 박스 -->
+        <div class="chart-box">
+          <div class="box-title">Sentiment Statistics</div>
+          {% if chart_data %}
+            <div class="chart-container" id="chart-container"></div>
+            <div class="chart-legend">
+              <div class="legend-container" data-sentiment="positive">
+                <div class="legend-item positive">POSITIVE</div>
+                <div class="legend-count">{{ chart_data.get('positive', 0) }}</div>
+              </div>
+              <div class="legend-container" data-sentiment="negative">
+                <div class="legend-item negative">NEGATIVE</div>
+                <div class="legend-count">{{ chart_data.get('negative', 0) }}</div>
+              </div>
+              <div class="legend-container" data-sentiment="neutral">
+                <div class="legend-item neutral">NEUTRAL</div>
+                <div class="legend-count">{{ chart_data.get('neutral', 0) }}</div>
+              </div>
+            </div>
+          {% endif %}
         </div>
-      {% endif %}
 
-      {% if chart_data %}
-        <div
-          id="chart-container"
-          data-labels='{{ chart_data.keys()|list|tojson }}'
-          data-values='{{ chart_data.values()|list|tojson }}'
-        >
-          <canvas id="sentChart"></canvas>
+        <!-- 기사 리스트 박스 -->
+        <div class="article-list-box">
+          <div class="box-title">Recent News Articles</div>
+          <div id="article-list">
+            {% if news_items %}
+              {% for item in news_items %}
+                <div class="article-item {{ item.label }}" data-article-index="{{ loop.index0 }}">
+                  <div class="article-headline">{{ item.headline }}</div>
+                  <div class="article-meta">
+                    <span>{{ item.datetime | int | timestamp_to_date }}</span>
+                    <span class="sentiment-badge {{ item.label }}">
+                      {{ item.label.upper() }} ({{ "%.1f"|format(item.score * 100) }}%)
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <div class="empty-state-icon">📰</div>
+                <p>검색할 회사명을 입력해주세요.</p>
+              </div>
+            {% endif %}
+          </div>
         </div>
-        <script>
-          const container = document.getElementById('chart-container');
-          const labels    = JSON.parse(container.dataset.labels);
-          const values    = JSON.parse(container.dataset.values);
+      </div>
 
-          new Chart(document.getElementById('sentChart'), {
-            type: 'pie',
-            data: {
-              labels: labels,
-              datasets: [{
-                data: values,
-                backgroundColor: ['#4caf50', '#f44336', '#ff9800']
-              }]
+      <div class="right-container">
+        <div class="recommendation-box">
+          <div class="box-title">Investment Recommendation</div>
+          <div id="recommendation-content" class="recommendation-content">
+            <div class="empty-state">
+              <div class="empty-state-icon">💡</div>
+              <p>기사를 선택하면 맞춤형 투자 추천을 제공합니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 데이터 저장용 숨겨진 엘리먼트 -->
+  <div id="data-container" style="display: none;">
+    <script type="application/json" id="news-data">{{ news_items | tojson | safe if news_items else '[]' }}</script>
+    <script type="application/json" id="chart-data">{{ chart_data | tojson | safe if chart_data else '{}' }}</script>
+  </div>
+
+  <script>
+    // 전역 변수
+    let currentChart = null;
+    let selectedSentiment = '';
+    let allArticles = JSON.parse(document.getElementById('news-data').textContent);
+    let chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+    // 날짜 변환 필터
+    function timestampToDate(timestamp) {
+      return new Date(timestamp * 1000).toLocaleDateString('ko-KR');
+    }
+
+    // 차트 초기화
+    function initChart() {
+      if (!chartData || Object.keys(chartData).length === 0) return;
+
+      const data = [
+        { name: 'POSITIVE', y: chartData.positive || 0, color: '#4CAF50' },
+        { name: 'NEGATIVE', y: chartData.negative || 0, color: '#F44336' },
+        { name: 'NEUTRAL', y: chartData.neutral || 0, color: '#FF9800' }
+      ];
+
+      const total = data.reduce((sum, item) => sum + item.y, 0);
+
+      currentChart = Highcharts.chart('chart-container', {
+        chart: {
+          type: 'pie',
+          backgroundColor: 'transparent',
+          animation: { duration: 1200 }
+        },
+        title: { text: '' },
+        tooltip: {
+          headerFormat: '',
+          pointFormat: '<span style="color:{point.color}">●</span> {point.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            innerSize: '40%',
+            borderRadius: 8,
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b><br/>{point.percentage:.1f}%',
+              distance: 30,
+              style: {
+                fontWeight: 'bold',
+                fontSize: '16px',
+                color: '#333',
+                textOutline: '2px white'
+              }
             },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { position: 'bottom' }
+            showInLegend: false,
+            point: {
+              events: {
+                click: function() {
+                  handleSliceClick(this.name.toLowerCase());
+                }
               }
             }
-          });
-        </script>
-      {% endif %}
+          }
+        },
+        series: [{
+          enableMouseTracking: true,
+          data: data
+        }],
+        exporting: { enabled: false },
+        credits: { enabled: false }
+      });
 
-      {% if news_items %}
-        <section class="news-section">
-          <h2>최신 뉴스 헤드라인</h2>
-          <ul class="news-list">
-            {% for item in news_items %}
-              <li>
-                <a href="{{ item.url }}" target="_blank" rel="noopener">
-                  {{ item.headline }}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        </section>
-      {% endif %}
-    </main>
+      // 중앙에 총계 표시
+      currentChart.renderer.text(
+        `Total<br>${total}`,
+        currentChart.plotLeft + currentChart.plotWidth / 2,
+        currentChart.plotTop + currentChart.plotHeight / 2,
+        true
+      ).css({
+        color: '#333',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        textAlign: 'center'
+      }).attr({ 
+        align: 'center',
+        zIndex: 1000
+      }).add();
+    }
 
-    <footer>
-      &copy; 2025 Sentiment 투자 도우미. All Rights Reserved.
-    </footer>
-  </div>
+    // 범례 클릭 처리
+    function handleLegendClick(sentiment) {
+      selectedSentiment = selectedSentiment === sentiment ? '' : sentiment;
+      updateLegendStyles();
+      filterArticles();
+      updateChartSelection();
+    }
+
+    // 차트 슬라이스 클릭 처리
+    function handleSliceClick(sentiment) {
+      selectedSentiment = selectedSentiment === sentiment ? '' : sentiment;
+      updateLegendStyles();
+      filterArticles();
+    }
+
+    // 범례 스타일 업데이트
+    function updateLegendStyles() {
+      document.querySelectorAll('.legend-container').forEach(container => {
+        const sentiment = container.dataset.sentiment;
+        if (selectedSentiment === '' || selectedSentiment === sentiment) {
+          container.style.opacity = '1';
+        } else {
+          container.style.opacity = '0.3';
+        }
+      });
+    }
+
+    // 기사 필터링
+    function filterArticles() {
+      const articles = document.querySelectorAll('.article-item');
+      articles.forEach(article => {
+        const articleSentiment = article.classList.contains('positive') ? 'positive' :
+                                article.classList.contains('negative') ? 'negative' : 'neutral';
+        
+        if (selectedSentiment === '' || selectedSentiment === articleSentiment) {
+          article.style.display = 'block';
+          article.style.opacity = '1';
+        } else {
+          article.style.display = 'none';
+        }
+      });
+    }
+
+    // 차트 선택 상태 업데이트
+    function updateChartSelection() {
+      if (!currentChart) return;
+      
+      currentChart.series[0].points.forEach(point => {
+        if (selectedSentiment === '' || selectedSentiment === point.name.toLowerCase()) {
+          point.graphic.css({ opacity: 1 });
+        } else {
+          point.graphic.css({ opacity: 0.3 });
+        }
+      });
+    }
+
+    // 기사 클릭 처리
+    function handleArticleClick(index) {
+      // 기존 선택 제거
+      document.querySelectorAll('.article-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // 새로운 선택 추가
+      const clickedArticle = document.querySelector(`[data-article-index="${index}"]`);
+      if (clickedArticle) {
+        clickedArticle.classList.add('selected');
+      }
+
+      // 추천 내용 생성
+      const article = allArticles[index];
+      generateRecommendation(article);
+    }
+
+    // 투자 추천 생성
+    function generateRecommendation(article) {
+      const sentiment = article.label;
+      const score = (article.score * 100).toFixed(1);
+      const company = "{{ request.args.get('company', '') }}";
+      
+      let recommendation = '';
+      let riskLevel = '';
+      let action = '';
+      
+      if (sentiment === 'positive') {
+        action = 'BUY';
+        riskLevel = 'LOW';
+        recommendation = `긍정적인 뉴스 sentiment가 감지되었습니다. ${company} 주식에 대한 매수 신호로 해석될 수 있습니다. 현재 시장 상황과 기술적 분석을 추가로 고려하여 투자 결정을 하시기 바랍니다.`;
+      } else if (sentiment === 'negative') {
+        action = 'SELL';
+        riskLevel = 'HIGH';
+        recommendation = `부정적인 뉴스 sentiment가 감지되었습니다. ${company} 주식에 대한 주의가 필요합니다. 추가적인 하락 가능성을 고려하여 리스크 관리에 중점을 두시기 바랍니다.`;
+      } else {
+        action = 'HOLD';
+        riskLevel = 'MEDIUM';
+        recommendation = `중립적인 뉴스 sentiment입니다. ${company} 주식에 대한 관망 전략이 적절할 수 있습니다. 추가적인 정보와 시장 동향을 지켜본 후 결정하시기 바랍니다.`;
+      }
+
+      const content = `
+        <div class="recommendation-section">
+          <div class="recommendation-title">
+            📊 Sentiment 분석 결과
+          </div>
+          <div class="recommendation-text">
+            <strong>감정 점수:</strong> ${sentiment.toUpperCase()} (${score}%)<br>
+            <strong>신뢰도:</strong> ${score > 80 ? '높음' : score > 60 ? '보통' : '낮음'}
+          </div>
+        </div>
+
+        <div class="recommendation-section">
+          <div class="recommendation-title">
+            💡 투자 추천
+          </div>
+          <div class="recommendation-text">
+            <strong>추천 액션:</strong> ${action}<br>
+            <strong>리스크 레벨:</strong> ${riskLevel}<br><br>
+            ${recommendation}
+          </div>
+        </div>
+
+        <div class="recommendation-section">
+          <div class="recommendation-title">
+            📰 분석 기사
+          </div>
+          <div class="recommendation-text">
+            <strong>제목:</strong> ${article.headline}<br>
+            <strong>발행일:</strong> ${new Date(article.datetime * 1000).toLocaleDateString('ko-KR')}
+          </div>
+        </div>
+
+        <div class="recommendation-section">
+          <div class="recommendation-title">
+            ⚠️ 투자 유의사항
+          </div>
+          <div class="recommendation-text">
+            본 분석은 뉴스 sentiment 기반의 참고 자료이며, 실제 투자 결정 시에는 다양한 요인을 종합적으로 고려하시기 바랍니다. 투자에는 항상 리스크가 따르므로 신중한 판단이 필요합니다.
+          </div>
+        </div>
+      `;
+
+      document.getElementById('recommendation-content').innerHTML = content;
+    }
+
+    // 이벤트 리스너 등록
+    document.addEventListener('DOMContentLoaded', function() {
+      // 차트 초기화
+      if (chartData && Object.keys(chartData).length > 0) {
+        initChart();
+      }
+
+      // 범례 클릭 이벤트
+      document.querySelectorAll('.legend-container').forEach(container => {
+        container.addEventListener('click', function() {
+          handleLegendClick(this.dataset.sentiment);
+        });
+      });
+
+      // 기사 클릭 이벤트
+      document.querySelectorAll('.article-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const index = parseInt(this.dataset.articleIndex);
+          handleArticleClick(index);
+        });
+      });
+    });
+  </script>
 </body>
 </html>

@@ -8,6 +8,12 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
+# ——— 템플릿 필터 정의 ———
+@app.template_filter('timestamp_to_date')
+def timestamp_to_date(timestamp):
+    """타임스탬프를 날짜 문자열로 변환"""
+    return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+
 # ——— 1) Finnhub 클라이언트 & FinBERT 초기화 ———
 API_KEY = "d1997v9r01qkcat6rsu0d1997v9r01qkcat6rsug"
 finnhub_client = finnhub.Client(api_key=API_KEY)
@@ -93,4 +99,4 @@ def index():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5002)
