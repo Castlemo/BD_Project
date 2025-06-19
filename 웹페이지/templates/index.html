@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentiment 투자 도우미</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Reset & 기본 설정 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      background-color: #f5f7fa;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    header {
+      background-color: #4caf50;
+      padding: 1.5rem;
+      color: #fff;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    main {
+      padding: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    form input[type="text"] {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    form button {
+      padding: 0.75rem 1.25rem;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    form button:hover {
+      background-color: #43a047;
+    }
+
+    .message {
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+    .message.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+    .message.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    #chart-container {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .news-section {
+      margin-top: 2rem;
+    }
+    .news-section h2 {
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+      color: #444;
+    }
+    .news-list {
+      list-style: none;
+    }
+    .news-list li {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      background-color: #fafafa;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .news-list li:hover {
+      background-color: #f0f0f0;
+    }
+    .news-list a {
+      text-decoration: none;
+      color: #1e88e5;
+      font-weight: 500;
+    }
+    .news-list a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.875rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Sentiment 기반 투자 도우미</h1>
+    </header>
+
+    <main>
+      <form method="get" action="/">
+        <input
+          type="text"
+          name="company"
+          placeholder="회사명 입력 (예: Apple)"
+          required
+          value="{{ request.args.get('company','') }}"
+        >
+        <button type="submit">조회</button>
+      </form>
+
+      {% if advice %}
+        <div class="message {% if '못 찾을 수 없습니다' in advice or '뉴스가 없습니다' in advice %}error{% else %}success{% endif %}">
+          {{ advice }}
+        </div>
+      {% endif %}
+
+      {% if chart_data %}
+        <div
+          id="chart-container"
+          data-labels='{{ chart_data.keys()|list|tojson }}'
+          data-values='{{ chart_data.values()|list|tojson }}'
+        >
+          <canvas id="sentChart"></canvas>
+        </div>
+        <script>
+          const container = document.getElementById('chart-container');
+          const labels    = JSON.parse(container.dataset.labels);
+          const values    = JSON.parse(container.dataset.values);
+
+          new Chart(document.getElementById('sentChart'), {
+            type: 'pie',
+            data: {
+              labels: labels,
+              datasets: [{
+                data: values,
+                backgroundColor: ['#4caf50', '#f44336', '#ff9800']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: 'bottom' }
+              }
+            }
+          });
+        </script>
+      {% endif %}
+
+      {% if news_items %}
+        <section class="news-section">
+          <h2>최신 뉴스 헤드라인</h2>
+          <ul class="news-list">
+            {% for item in news_items %}
+              <li>
+                <a href="{{ item.url }}" target="_blank" rel="noopener">
+                  {{ item.headline }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    </main>
+
+    <footer>
+      &copy; 2025 Sentiment 투자 도우미. All Rights Reserved.
+    </footer>
+  </div>
+</body>
+</html>
